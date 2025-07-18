@@ -3,12 +3,22 @@ import { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import NoProject from './components/NoProject';
 import NewProject from './components/NewProject';
+import SelectedProject from './components/SelectedProject';
 
 function App() {
   const [projectState, setProjectState] = useState({
     selectedProjectId: undefined,
     projects: [],
   });
+
+  function handleSelectProject(id) {
+    setProjectState(prevState => {
+      return {
+        ...prevState,
+        selectedProjectId: id,
+      };
+    });
+  }
 
   function handleStartAddProject() {
     setProjectState(prevState => {
@@ -21,28 +31,45 @@ function App() {
 
   function handleAddProject(projectData) {
     setProjectState(prevState => {
+      const projectId = Math.random();
       const newProject = {
         ...projectData,
-        id: Math.random().toString(),
+        id: projectId,
       };
       return {
         ...prevState,
+        selectedProjectId: undefined,
         projects: [...prevState.projects, newProject]
       };
     });
   }
 
-  let content;
+  function handleCancelAddProject() {
+    setProjectState(prevState => {
+      return {
+        ...prevState,
+        selectedProjectId: undefined
+      };
+    });
+  }
+
+  const selectedProject = projectState.projects.find(project => project.id === projectState.selectedProjectId);
+
+  let content = <SelectedProject project={selectedProject} />;
 
   if (projectState.selectedProjectId === null) {
-    content = <NewProject onAdd={handleAddProject}/>;
+    content = <NewProject onAdd={handleAddProject} onCancel={handleCancelAddProject} />;
   } else if (projectState.selectedProjectId === undefined) {
     content = <NoProject onStartAddProject={handleStartAddProject} />;
   }
 
   return (
     <main className="h-screen my-8 flex gap-8">
-      <Sidebar onStartAddProject={handleStartAddProject} />
+      <Sidebar
+        onStartAddProject={handleStartAddProject}
+        projects={projectState.projects}
+        onSelectProject={handleSelectProject}
+      />
       {content}
     </main>
   );
